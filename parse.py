@@ -8,7 +8,7 @@ Created on Wed Mar 09 21:13:23 2016
 from pyparsing import (alphas,nums,alphanums,Word,OneOrMore,ZeroOrMore,
                        Forward,srange,delimitedList,Literal,Group,Empty,
                        Optional)
-import collections
+from collections import defaultdict
 
 identifier = Word(alphas,alphanums+'_')
 predictor=identifier('functor')+'('+delimitedList(identifier).setResultsName('args')+')'
@@ -42,16 +42,6 @@ def parse_prop(prop):
 
 def parse_Init(res):
     return parse_prop(res['Init']['prop'])
-    '''
-    Init={}
-    for cond in res['Init']['prop']:
-        functor=cond['functor']
-        args=cond['args']
-        value=cond['value']
-        if not(Init.has_key(functor)):
-            Init[functor]={}
-        Init[functor][args]=value
-    return Init'''
     
 def parse_Goal(res):
     return parse_prop(res['Goal']['prop'])
@@ -72,16 +62,19 @@ def parse_Action(res):
 def loads(s):
     rd={}
     res=Program.parseString(s)
-    rd['Init']=collections.defaultdict(dict)
-    rd['Init'].update(parse_Init(res))
+    # close world hypothesis
+    #rd['Init']=defaultdict(lambda :defaultdict(lambda :False))
+    #rd['Init'].update(parse_Init(res))
+    rd['Init']=parse_Init(res)
+    #rd['Goal']=defaultdict(lambda :defaultdict(lambda :False))
+    #rd['Goal'].update(parse_Goal(res))
     rd['Goal']=parse_Goal(res)
     rd['Action']=parse_Action(res)
     return rd
     
 def load(fname):
-    f=open(fname,'r')
-    s=f.read()
-    f.close()
+    with open(fname,'r') as f:
+        s=f.read()
     return loads(s)
 
 '''
